@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "es2018",
+      "module": "commonjs",
+      "sourceMap": true,
+      "strict": true,
+      "noImplicitAny": false,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "importHelpers": true,
+      "isolatedModules": true,
+      "removeComments": true
+    }
+  }
+  

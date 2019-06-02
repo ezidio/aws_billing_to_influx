@@ -1,0 +1,6 @@
+version: '3'
+services:
+  influx:
+    image: "influxdb:1.7.6-alpine"
+    ports:
+      - 8086:8086
