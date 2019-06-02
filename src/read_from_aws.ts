@@ -1,34 +1,17 @@
 import { S3 } from 'aws-sdk';
 import zlib from 'zlib';
 import csvParser from 'csv-parser';
-import {InfluxDB, IPoint, FieldType} from 'influx';
-
-const influx = new InfluxDB({
-  host: 'localhost',
-  database: 'aws_billing_data',
-  schema: [
-    {
-      measurement: 'billing',
-      fields: {
-        usage: FieldType.FLOAT,
-        cost: FieldType.FLOAT
-      },
-      tags: [
-        'product', 'region', 'account', 'unit', 'productFamily', 'service', 'id'
-      ]
-    }
-  ]
-})
+import {IPoint} from 'influx';
+import influx from './influx';
 
 const s3 = new S3();
 
-function processKey(Key) {
+function readFile(Bucket, Key) {
   console.log(`Processando arquivo ${Key}`);
   let bulkData: IPoint[] = [];
 
-  const init = Date.now();
   s3.getObject({
-    Bucket: 'teste-cmp-billing',
+    Bucket,
     Key,
   })
     .createReadStream()
@@ -54,23 +37,19 @@ function processKey(Key) {
       bulkData.push(point);
     })
     .on('end', async () => {
-      console.log(`Realizando envio de ${bulkData.length} linhas`);
       for (let start = 0; start < bulkData.length; start += 1000) {
-        console.log(start);
         await influx.writePoints(bulkData.slice(start, Math.min(start + 1000, bulkData.length)));
       }
-      console.log('fim', Date.now() - init);
     });
 }
 
 influx.getDatabaseNames()
   .then(names => {
-    console.log(names);
     if (!names.includes('aws_billing_data')) {
       return influx.createDatabase('aws_billing_data');
     }
     return undefined;
   })
   .then(() => {
-    processKey(process.env.FILE);
+    readFile(process.env.BUCKET, process.env.FILE);
   });
